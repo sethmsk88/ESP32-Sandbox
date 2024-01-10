@@ -15,8 +15,8 @@ CRGB color;
 
 void setup() {
   Serial.begin(115200);
-
-  setupOTA();
+  
+  setupOTAUpdateAndSerialMonitor();
 
   pinMode(BTN_PIN, INPUT);  // Set button pin to input mode
 
@@ -32,8 +32,11 @@ void setup() {
   currentButtonState = digitalRead(BTN_PIN);
 }
 
+
+
 void loop() {
   ElegantOTA.loop();
+  webSerialLoop();
 
   lastButtonState    = currentButtonState;                // save the last state
   currentButtonState = digitalRead(BTN_PIN); // read new state
@@ -56,4 +59,10 @@ void loop() {
     FastLED.show();
   }
 }
+
+
+
+
+
+
 

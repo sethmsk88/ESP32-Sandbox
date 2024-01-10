@@ -27,12 +27,37 @@
 #include <ElegantOTA.h>
 #include "my_secrets.h"
 
+#include <WebSerial.h>
+
 const char* ssid = SECRET_SSID;
 const char* password = SECRET_PW;
 
 AsyncWebServer server(80);
 
 unsigned long ota_progress_millis = 0;
+
+/* Message callback of WebSerial */
+void recvMsg(uint8_t *data, size_t len){
+  WebSerial.println("Received Data...");
+  String d = "";
+  for(int i=0; i < len; i++){
+    d += char(data[i]);
+  }
+  WebSerial.println(d);
+}
+
+void webSerialSetup() {        
+    // WebSerial is accessible at "192.168.0.18/webserial" in browser
+    WebSerial.begin(&server);
+    WebSerial.msgCallback(recvMsg);
+    server.begin();   
+}
+
+void webSerialLoop() {
+    delay(2000);
+    WebSerial.print(F("IP address: "));
+    WebSerial.println(WiFi.localIP());
+}
 
 void onOTAStart() {
   // Log when OTA has started
@@ -58,7 +83,7 @@ void onOTAEnd(bool success) {
   // <Add your own code here>
 }
 
-void setupOTA() {
+void setupOTAUpdateAndSerialMonitor() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.println("");
@@ -68,7 +93,7 @@ void setupOTA() {
     delay(500);
     Serial.print(".");
   }
-  delay(1000);  // Delay to give the Serial monitor a second to start up
+  delay(500);  // Delay to give the Serial monitor a second to start up
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
@@ -76,7 +101,7 @@ void setupOTA() {
   Serial.println(WiFi.localIP());
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/plain", "Hi! This is ElegantOTA AsyncDemo.");
+    request->send(200, "text/html", "<a href=\"/update\">Update Code</a><br /><a href=\"/webserial\">Serial Monitor</a>");
   });
 
   ElegantOTA.begin(&server);    // Start ElegantOTA
@@ -86,5 +111,7 @@ void setupOTA() {
   ElegantOTA.onEnd(onOTAEnd);
 
   server.begin();
-  Serial.println("HTTP server started");    
+  Serial.println("HTTP server started");
+
+  webSerialSetup();
 }
