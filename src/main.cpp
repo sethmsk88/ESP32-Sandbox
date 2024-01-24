@@ -62,24 +62,20 @@ void handleButton() {
 }
 
 void printBatteryStats() {
-  WebSerial.print("Volts: ");
-  WebSerial.println(battery.getBatteryVolts());
+  EVERY_N_SECONDS(30) {
+    WebSerial.print("Volts: ");
+    WebSerial.println(battery.getBatteryVolts());
 
-  WebSerial.print("Charge level: ");
-  WebSerial.println(battery.getBatteryChargeLevel());
+    WebSerial.print("Charge level: ");
+    WebSerial.println(battery.getBatteryChargeLevel());
 
-  WebSerial.print("Charge level (using the reference table): ");
-  WebSerial.println(battery.getBatteryChargeLevel(true));
+    WebSerial.print("Charge level (using the reference table): ");
+    WebSerial.println(battery.getBatteryChargeLevel(true));
+  }
 }
 
-void loop() {
-  ElegantOTA.loop();
-  //webSerialLoop(); // Write some test info to serial monitor
-  //handleButton();
-  FastLED.show();
-
+void calculateAndPrintBatteryVoltage() {
   EVERY_N_SECONDS(30) {
-    //printBatteryStats();
     int sensorValue = analogRead(ADC_PIN);
     // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
     
@@ -91,7 +87,18 @@ void loop() {
     float measuredVoltage = (sensorValue * (batteryVoltage / 1023.0)) / conversionFactor;
     // print out the value you read:
     WebSerial.println(measuredVoltage);
-  } 
+  }
+}
+
+void loop() {
+  ElegantOTA.loop();
+  // webSerialLoop(); // Write some test info to serial monitor
+  // handleButton();
+  // calculateAndPrintBatteryVoltage();
+  // printBatteryStats();
+  FastLED.show();
+
+   
 }
 
 
